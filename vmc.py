@@ -56,7 +56,13 @@ class ConfigWalker:
   def __str__(self):
     return f"Walker with N = {self.particles}, d = {self.dims}, L = {self.scale} at {self.current_config()}"
 
-def psi_t(r: np.ndarray):
+def walker_avg(walkers: list[ConfigWalker], f: function):
+  sum = 0.
+  for w in walkers:
+    sum += f(w.current_config())
+  return sum/len(walkers)
+
+def gauss_wf(r: np.ndarray):
   r0 = np.array([0,0,0])
   dist = np.linalg.norm(r - r0)
   return np.exp(-1000000*dist**2)
@@ -65,4 +71,4 @@ wa = ConfigWalker()
 wa.positions = np.array([0.01,0.01,0.01])
 for i in range(0,10000):
   print(wa.current_config())
-  wa.metropolis_step(psi_t)
+  wa.metropolis_step(gauss_wf)
