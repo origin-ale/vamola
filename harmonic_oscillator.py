@@ -1,6 +1,5 @@
 import numpy as np
 
-import config_walk as cw
 import vmc
 
 def e_l_alpha(x:float, alpha: float):
@@ -9,8 +8,8 @@ def e_l_alpha(x:float, alpha: float):
 def psi_alpha(x:float, alpha:float):
   return np.exp(-alpha * x**2)
 
-def logder(x:float):
+def logder(x:float, alpha:float):
   return -x**2
 
 if __name__=="__main__":
-  vmc.variational_mc(psi_alpha, e_l_alpha, logder, "1D harmonic oscillator")
+  vmc.variational_mc(1, 1, psi_alpha, e_l_alpha, logder, "1D harmonic oscillator")
