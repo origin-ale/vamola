@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 def get_args():
   walker_parser = ArgumentParser()
 
-  walker_parser.add_argument('-a', '--alpha', action='store', type=float, default=1.2,
+  walker_parser.add_argument('-a', '--alpha', action='store', type=float, default=0.8,
                              help="Starting value of the variational parameter alpha")
   walker_parser.add_argument('-w', '--walkers', action='store', type=int, default=40, 
                             help="Number of random walkers")

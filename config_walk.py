@@ -22,20 +22,20 @@ class ConfigWalker:
     self.dims = dims
     self.scale = scale
     self.coord_n = dims * particles
-    self.positions = self.rng.uniform(0, scale, self.coord_n)
+    self.config = self.rng.uniform(0, scale, self.coord_n)
     self.max_step = 0.01 * scale
 
   def step_from(self):
     """Try stepping to a new configuration, but don't do it yet. Used in Markov chain implementation"""
     step_axis = self.rng.integers(0, self.coord_n)
     step_len = self.rng.uniform(-self.max_step, self.max_step)
-    step_vec = np.zeros_like(self.positions)
+    step_vec = np.zeros_like(self.config)
     step_vec[step_axis] += step_len
-    return self.positions + step_vec
+    return self.config + step_vec
   
   def move_to(self, destination: np.ndarray):
-    """Move to a new configuration."""
-    self.positions = destination
+    """Move to a new configuration"""
+    self.config = destination
 
   def step(self):
     dest = self.step_from()
@@ -46,11 +46,12 @@ class ConfigWalker:
     rp = self.step_from()
     p = (wf(rp)**2)/(wf(r)**2)
     if p >= 1: self.move_to(rp)
-    elif self.rng.random() < p: self.move_to(rp)
+    else:
+      if self.rng.random() < p: self.move_to(rp)
 
   def current_config(self):
     """Returns a copy of the current configuration"""
-    return self.positions.copy()
+    return self.config.copy()
   
   def __str__(self):
     return f"Walker with N = {self.particles}, d = {self.dims}, L = {self.scale} at {self.current_config()}"
@@ -74,7 +75,7 @@ def gauss_wf(r: np.ndarray):
 
 if __name__=="__main__":
   wa = ConfigWalker()
-  wa.positions = np.array([0.01,0.01,0.01])
+  wa.config = np.array([0.01,0.01,0.01])
   for i in range(0,10000):
     print(wa.current_config())
     wa.metropolis_step(gauss_wf)
