@@ -1,4 +1,5 @@
 import numpy as np
+from argparse import ArgumentParser
 
 class ConfigWalker:
   """
@@ -47,7 +48,6 @@ class ConfigWalker:
     p = (wf(rp)**2)/(wf(r)**2)
     if p >= 1: self.move_to(rp)
     elif self.rng.random() < p: self.move_to(rp)
-    else: print("Move rejected")
 
   def current_config(self):
     """Returns a copy of the current configuration"""
@@ -56,19 +56,26 @@ class ConfigWalker:
   def __str__(self):
     return f"Walker with N = {self.particles}, d = {self.dims}, L = {self.scale} at {self.current_config()}"
 
-def walker_avg(walkers: list[ConfigWalker], f: function):
+def sample_avg(configs: list[np.ndarray], f: function):
   sum = 0.
-  for w in walkers:
-    sum += f(w.current_config())
-  return sum/len(walkers)
+  for c in configs:
+    sum += f(c)
+  return sum/len(configs)
+
+def sample_stdev(configs: list[np.ndarray], f: function, avg: float):
+  sum_dev = 0.
+  for c in configs:
+    sum_dev += (f(c) - avg)**2
+  return sum_dev/len(configs)
 
 def gauss_wf(r: np.ndarray):
   r0 = np.array([0,0,0])
   dist = np.linalg.norm(r - r0)
   return np.exp(-1000000*dist**2)
 
-wa = ConfigWalker()
-wa.positions = np.array([0.01,0.01,0.01])
-for i in range(0,10000):
-  print(wa.current_config())
-  wa.metropolis_step(gauss_wf)
+if __name__=="__main__":
+  wa = ConfigWalker()
+  wa.positions = np.array([0.01,0.01,0.01])
+  for i in range(0,10000):
+    print(wa.current_config())
+    wa.metropolis_step(gauss_wf)
