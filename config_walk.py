@@ -1,5 +1,4 @@
 import numpy as np
-from argparse import ArgumentParser
 
 class ConfigWalker:
   """

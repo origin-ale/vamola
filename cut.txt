@@ -1,0 +1,40 @@
+Running VMC for harmonic oscillator.
+Walkers: 40
+Metropolis steps: 3000           Thermalization: 400             Info print interval: 1.0 s
+Standard deviation convergence threshold: 0.0001
+-------- Iteration 1 --------------------------------
+0.0 s: Metropolis step 0 (0.0%)
+1.0 s: calculating energy and stdev from 103960 samples...
+1.4 s: calculated energy = [0.56128318] with stdev = [0.39129317]
+1.4 s: updating alpha...
+1.7 s: alpha = [0.87118221]
+-------- Iteration 2 --------------------------------
+1.8 s: Metropolis step 0 (0.0%)
+2.0 s: Metropolis step 760 (25.3%)
+2.7 s: calculating energy and stdev from 103960 samples...
+3.4 s: calculated energy = [0.53518371] with stdev = [0.11685342]
+3.4 s: updating alpha...
+3.8 s: alpha = [0.64158896]
+-------- Iteration 3 --------------------------------
+3.8 s: Metropolis step 0 (0.0%)
+4.0 s: Metropolis step 588 (19.6%)
+4.8 s: calculating energy and stdev from 103960 samples...
+5.4 s: calculated energy = [0.52879491] with stdev = [0.01723902]
+5.4 s: updating alpha...
+5.9 s: alpha = [0.53493587]
+-------- Iteration 4 --------------------------------
+5.9 s: Metropolis step 0 (0.0%)
+6.0 s: Metropolis step 382 (12.7%)
+6.9 s: calculating energy and stdev from 103960 samples...
+7.5 s: calculated energy = [0.5057804] with stdev = [0.00116787]
+7.5 s: updating alpha...
+7.9 s: alpha = [0.50263525]
+-------- Iteration 5 --------------------------------
+7.9 s: Metropolis step 0 (0.0%)
+8.0 s: Metropolis step 189 (6.3%)
+8.9 s: calculating energy and stdev from 103960 samples...
+9.5 s: calculated energy = [0.50083223] with stdev = [3.52308935e-06]
+9.5 s: updating alpha...
+10.0 s: alpha = [0.50130186]
+================================ Converged with alpha = [0.50130186] ================================
+Energy = [0.50083223] with stdev = [3.52308935e-06]
