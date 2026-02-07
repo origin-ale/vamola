@@ -12,4 +12,5 @@ def logder(x:float, alpha:float):
   return -(x**2)
 
 if __name__=="__main__":
-  vmc.variational_mc(1, 1, psi_alpha, e_l_alpha, logder, "1D harmonic oscillator")
+  walker_step = .4
+  vmc.variational_mc(1, 1, walker_step, psi_alpha, e_l_alpha, logder, "1D harmonic oscillator")

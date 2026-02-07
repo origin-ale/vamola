@@ -11,6 +11,7 @@ import helium as he
 
 def test_vmc(particles: int, 
                    dims: int, 
+                   walker_step: int,
                    psi_alpha: function, 
                    e_l_alpha: function, 
                    alphas: list,
@@ -41,6 +42,7 @@ def test_vmc(particles: int,
                             psi_alpha, 
                             particles, 
                             dims,
+                            walker_step,
                             10, 
                             10000, 
                             5000,
@@ -55,25 +57,26 @@ def test_vmc(particles: int,
   return energies
 
 if __name__ == "__main__":
+  ho_step = .33
   alphas_ho = [0.4, 0.45, 0.5, 0.55, 0.6]
-  energies_ho = test_vmc(1,1,ho.psi_alpha, ho.e_l_alpha, alphas_ho, "harmonic oscillator")
+  energies_ho = test_vmc(1,1,ho_step, ho.psi_alpha, ho.e_l_alpha, alphas_ho, "harmonic oscillator")
 
+  hy_step = 1.5
   alphas_hy = [0.8, 0.9, 1, 1.1, 1.2]
-  energies_hy = test_vmc(1,3,hy.psi_alpha, hy.e_l_alpha, alphas_hy, "hydrogen atom")
+  energies_hy = test_vmc(1,3,hy_step,hy.psi_alpha, hy.e_l_alpha, alphas_hy, "hydrogen atom")
 
-  alphas_he = [0.05, 0.075, 0.1, 0.125, 0.15, 0.175, 0.2, 0.25]
-  energies_he = test_vmc(2,3,he.psi_alpha, he.e_l_alpha, alphas_he, "helium atom")
+  he_step = 2
+  alphas_he = [0.05, 0.075, 0.1, 0.125, 0.15, 0.175, 0.2, 0.225, 0.25]
+  energies_he = test_vmc(2,3,he_step,he.psi_alpha, he.e_l_alpha, alphas_he, "helium atom")
 
   fig, axs = plt.subplots(1,3, figsize = [19.2, 3.6])
+
   axs[0].plot(alphas_ho, energies_ho)
   f = lambda x: 0.5*x + 1/(8*x)
   energies_expected=[f(a) for a in alphas_ho]
   axs[0].plot(alphas_ho, energies_expected)
 
   axs[1].plot(alphas_hy, energies_hy)
-  # f = lambda x: 0.5*x + 1/(8*x)
-  # energies_expected=[f(a) for a in alphas_hy]
-  # axs[1].plot(alphas_hy, energies_expected)
 
   axs[2].plot(alphas_he, energies_he)
   

@@ -16,7 +16,7 @@ def e_l_alpha(R:np.ndarray, alpha: float):
 
   o0 = -4
   o1 = 1/r12_norm
-  o2 = (rv1 - rv2).T @ (r1-r2) * 1/(r12_norm * x**2)
+  o2 = np.dot(rv1 - rv2,r1-r2) * 1/(r12_norm * x**2)
   o3 = - 1/(r12_norm * x**3)
   o4 = - 1/(4 * x**4)
 
@@ -42,4 +42,5 @@ def logder(R:np.ndarray, alpha:float):
 
 
 if __name__=="__main__":
-  vmc.variational_mc(2, 3, psi_alpha, e_l_alpha, logder, "helium atom")
+  walker_step = .4
+  vmc.variational_mc(2, 3, walker_step, psi_alpha, e_l_alpha, logder, "helium atom")

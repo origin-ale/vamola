@@ -7,7 +7,7 @@ class ConfigWalker:
   rng_seed = 1
   rng = np.random.default_rng(rng_seed)
 
-  def __init__(self, particles = 1, dims = 3, scale = 1.):
+  def __init__(self, particles = 1, dims = 3, step_len = 1.):
     """
     Parameters
     -
@@ -20,10 +20,9 @@ class ConfigWalker:
     """
     self.particles = particles
     self.dims = dims
-    self.scale = scale
     self.coord_n = dims * particles
-    self.config = self.rng.uniform(0, scale, self.coord_n)
-    self.max_step = scale
+    self.config = self.rng.uniform(0, step_len, self.coord_n)
+    self.step_len = step_len # 1 for ho & hy, .01 for he
 
   def try_step(self):
     """Try stepping to a new configuration, but don't do it yet. Used in Markov chain implementation"""
@@ -31,7 +30,7 @@ class ConfigWalker:
     # step_len = self.rng.normal(0, self.max_step)
     # step_vec = np.zeros(len(self.current_config()))
     # step_vec[step_axis] += step_len
-    step_vec = self.rng.normal(0, self.max_step, self.coord_n)
+    step_vec = self.rng.normal(0, self.step_len, self.coord_n)
     return self.current_config() + step_vec
   
   def move_to(self, destination: np.ndarray):

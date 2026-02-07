@@ -9,9 +9,9 @@ def update_alpha(alpha: float, energy: float, logder:function, e_l_alpha:functio
   der = 2 * (cw.sample_avg(samples, lambda x: e_l_alpha(x,alpha)*logder(x, alpha)) - energy * cw.sample_avg(samples, lambda x:logder(x, alpha)))
   return alpha - gamma * der
 
-def vmc_sample(alpha, psi_alpha, particles, dims, walker_n, steps, thermal, print_interval, st):
+def vmc_sample(alpha, psi_alpha, particles, dims, walker_step, walker_n, steps, thermal, print_interval, st):
   psi = partial(psi_alpha, alpha=alpha)
-  walkers = [cw.ConfigWalker(particles,dims) for i in range(0,walker_n)]
+  walkers = [cw.ConfigWalker(particles,dims,walker_step) for i in range(0,walker_n)]
   samples = []
   elapsed_time = time.perf_counter() - st
   next_print = int(elapsed_time) + print_interval
@@ -36,6 +36,7 @@ def vmc_energy(alpha: float, e_l_alpha: np.ndarray, samples: list):
 
 def variational_mc(particles: int, 
                    dims: int, 
+                   walker_step: float,
                    psi_alpha: function, 
                    e_l_alpha: function, 
                    logder: function, 
@@ -79,7 +80,7 @@ def variational_mc(particles: int,
   print(f"Starting alpha: {alpha}\t\tEnergy convergence threshold: {threshold}")
   while energy_diff > threshold:
     print(8*'-' + f" Iteration {j} " + 32*'-')
-    samples = vmc_sample(alpha, psi_alpha, particles, dims, walker_n, steps, thermal, print_interval, st)
+    samples = vmc_sample(alpha, psi_alpha, particles, dims, walker_step, walker_n, steps, thermal, print_interval, st)
 
     energy_last = energy
     elapsed_time = time.perf_counter() - st
