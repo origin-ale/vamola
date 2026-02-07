@@ -23,14 +23,15 @@ class ConfigWalker:
     self.scale = scale
     self.coord_n = dims * particles
     self.config = self.rng.uniform(0, scale, self.coord_n)
-    self.max_step = .4* scale
+    self.max_step = scale
 
   def try_step(self):
     """Try stepping to a new configuration, but don't do it yet. Used in Markov chain implementation"""
-    step_axis = self.rng.integers(0, self.coord_n)
-    step_len = self.rng.normal(0, self.max_step)
-    step_vec = np.zeros(len(self.current_config()))
-    step_vec[step_axis] += step_len
+    # step_axis = self.rng.integers(0, self.coord_n)
+    # step_len = self.rng.normal(0, self.max_step)
+    # step_vec = np.zeros(len(self.current_config()))
+    # step_vec[step_axis] += step_len
+    step_vec = self.rng.normal(0, self.max_step, self.coord_n)
     return self.current_config() + step_vec
   
   def move_to(self, destination: np.ndarray):

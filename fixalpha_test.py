@@ -5,9 +5,9 @@ import time
 import config_walk as cw
 import vmc
 
-import harmonic_oscillator
-import hydrogen
-import helium
+import harmonic_oscillator as ho
+import hydrogen as hy
+import helium as he
 
 def test_vmc(particles: int, 
                    dims: int, 
@@ -33,40 +33,48 @@ def test_vmc(particles: int,
   alphas: list[float]
     The values of the variational parameter to calculate the energy for.
   """
+  print("Running test for " + syst_name + "...")
+  energies = []
+  for a in alphas:
+    st = time.perf_counter()
+    samples = vmc.vmc_sample(a, 
+                            psi_alpha, 
+                            particles, 
+                            dims,
+                            10, 
+                            10000, 
+                            5000,
+                            1, 
+                            st)
+    energy, le_stdev = vmc.vmc_energy(a, e_l_alpha, samples)
+    energies.append(energy)
+    # wf_weights = psi_alpha(x, a) ** 2
+    # avg_le = np.average(e_l,weights=wf_weights)
+    # avg_les.append(avg_le)
+    print(f"alpha = {a}\tE = {energy}\tvar={le_stdev}")
+  return energies
 
 if __name__ == "__main__":
-  st = time.perf_counter()
   alphas_ho = [0.4, 0.45, 0.5, 0.55, 0.6]
-  # alphas_ho = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3]
-  energies_ho = []
-  x = np.linspace(-10,10, 20000)
-  e_ls=[]
-  avg_les = []
-  for a in alphas_ho:
-    energy, _, le_stdev, _ = vmc.vmc_iteration(0,
-                                              a, 
-                                              harmonic_oscillator.e_l_alpha, 
-                                              harmonic_oscillator.psi_alpha, 
-                                              harmonic_oscillator.logder, 
-                                              1, 
-                                              1,
-                                              10, 
-                                              10000, 
-                                              5000,
-                                              1, 
-                                              st)
-    e_l = harmonic_oscillator.e_l_alpha(x, a)
-    energies_ho.append(energy)
-    wf_weights = harmonic_oscillator.psi_alpha(x, a) ** 2
-    avg_le = np.average(e_l,weights=wf_weights)
-    avg_les.append(avg_le)
-    e_ls.append(e_l)
-    print(f"alpha = {a}\tE = {energy}\tvar={le_stdev}; average of local energy {avg_le}")
-  
+  energies_ho = test_vmc(1,1,ho.psi_alpha, ho.e_l_alpha, alphas_ho, "harmonic oscillator")
 
-  plt.plot(alphas_ho, energies_ho)
+  alphas_hy = [0.8, 0.9, 1, 1.1, 1.2]
+  energies_hy = test_vmc(1,3,hy.psi_alpha, hy.e_l_alpha, alphas_hy, "hydrogen atom")
+
+  alphas_he = [0.05, 0.075, 0.1, 0.125, 0.15, 0.175, 0.2, 0.25]
+  energies_he = test_vmc(2,3,he.psi_alpha, he.e_l_alpha, alphas_he, "helium atom")
+
+  fig, axs = plt.subplots(1,3, figsize = [19.2, 3.6])
+  axs[0].plot(alphas_ho, energies_ho)
   f = lambda x: 0.5*x + 1/(8*x)
   energies_expected=[f(a) for a in alphas_ho]
-  plt.plot(alphas_ho, energies_expected)
+  axs[0].plot(alphas_ho, energies_expected)
+
+  axs[1].plot(alphas_hy, energies_hy)
+  # f = lambda x: 0.5*x + 1/(8*x)
+  # energies_expected=[f(a) for a in alphas_hy]
+  # axs[1].plot(alphas_hy, energies_expected)
+
+  axs[2].plot(alphas_he, energies_he)
   
   plt.show()

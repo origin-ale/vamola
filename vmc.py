@@ -9,9 +9,8 @@ def update_alpha(alpha: float, energy: float, logder:function, e_l_alpha:functio
   der = 2 * (cw.sample_avg(samples, lambda x: e_l_alpha(x,alpha)*logder(x, alpha)) - energy * cw.sample_avg(samples, lambda x:logder(x, alpha)))
   return alpha - gamma * der
 
-def vmc_iteration(energy, alpha, e_l_alpha, psi_alpha, logder, particles, dims, walker_n, steps, thermal, print_interval, st):
+def vmc_sample(alpha, psi_alpha, particles, dims, walker_n, steps, thermal, print_interval, st):
   psi = partial(psi_alpha, alpha=alpha)
-  e_l = partial(e_l_alpha, alpha=alpha)
   walkers = [cw.ConfigWalker(particles,dims) for i in range(0,walker_n)]
   samples = []
   elapsed_time = time.perf_counter() - st
@@ -25,21 +24,14 @@ def vmc_iteration(energy, alpha, e_l_alpha, psi_alpha, logder, particles, dims, 
     if int(elapsed_time) % print_interval == 0 and int(elapsed_time) >= next_print: 
       print(f"{elapsed_time:.1f} s: Metropolis step {i} ({i/steps * 100:.1f}%)")
       next_print = int(elapsed_time) + print_interval
-
-  elapsed_time = time.perf_counter() - st
-  print(f"{elapsed_time:.1f} s: calculating energy and stdev from {len(samples)} samples...")
-  energy_last = energy
+    
+  return samples
+  
+def vmc_energy(alpha: float, e_l_alpha: np.ndarray, samples: list):
+  e_l = partial(e_l_alpha, alpha=alpha)
   energy = cw.sample_avg(samples, e_l)
   le_stdev = cw.sample_stdev(samples, e_l, energy)
-  elapsed_time = time.perf_counter() - st
-  energy_diff = np.abs(energy_last - energy)
-  print(f"{elapsed_time:.1f} s: calculated energy = {energy} with stdev = {le_stdev}")
-  elapsed_time = time.perf_counter() - st
-  print(f"{elapsed_time:.1f} s: updating alpha...")
-  alpha = update_alpha(alpha, energy, logder, e_l_alpha, samples)
-  elapsed_time = time.perf_counter() - st
-  print(f"{elapsed_time:.1f} s: alpha = {alpha}")
-  return energy, energy_diff, le_stdev, alpha
+  return energy, le_stdev
 
 
 def variational_mc(particles: int, 
@@ -87,7 +79,22 @@ def variational_mc(particles: int,
   print(f"Starting alpha: {alpha}\t\tEnergy convergence threshold: {threshold}")
   while energy_diff > threshold:
     print(8*'-' + f" Iteration {j} " + 32*'-')
-    energy, energy_diff, le_stdev, alpha = vmc_iteration(energy, alpha, e_l_alpha, psi_alpha, logder, particles, dims, walker_n, steps, thermal, print_interval, st)
+    samples = vmc_sample(alpha, psi_alpha, particles, dims, walker_n, steps, thermal, print_interval, st)
+
+    energy_last = energy
+    elapsed_time = time.perf_counter() - st
+    print(f"{elapsed_time:.1f} s: calculating energy and stdev from {len(samples)} samples...")
+    energy, le_stdev = vmc_energy(alpha, e_l_alpha, samples)
+    elapsed_time = time.perf_counter() - st
+    print(f"{elapsed_time:.1f} s: calculated energy = {energy} with stdev = {le_stdev}")
+    energy_diff = abs(energy_last-energy)
+
+    elapsed_time = time.perf_counter() - st
+    print(f"{elapsed_time:.1f} s: updating alpha...")
+    alpha = update_alpha(alpha, energy, logder, e_l_alpha, samples)
+    elapsed_time = time.perf_counter() - st
+    print(f"{elapsed_time:.1f} s: alpha = {alpha}")
+
     j+=1
 
   print(8*'=' + f" Converged with alpha = {alpha} " + 64*'=')
