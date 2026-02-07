@@ -19,7 +19,7 @@ def vmc_iteration(energy, alpha, e_l_alpha, psi_alpha, logder, particles, dims, 
   for i in range(0, steps):
     for w in walkers:
       w.metropolis_step(psi)
-      if i > thermal:
+      if i >= thermal:
         samples.append(w.current_config())
     elapsed_time = time.perf_counter() - st
     if int(elapsed_time) % print_interval == 0 and int(elapsed_time) >= next_print: 
@@ -92,3 +92,5 @@ def variational_mc(particles: int,
 
   print(8*'=' + f" Converged with alpha = {alpha} " + 64*'=')
   print(f"Energy = {energy} with stdev = {le_stdev}")
+
+  

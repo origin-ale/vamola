@@ -23,31 +23,36 @@ class ConfigWalker:
     self.scale = scale
     self.coord_n = dims * particles
     self.config = self.rng.uniform(0, scale, self.coord_n)
-    self.max_step = 0.01 * scale
+    self.max_step = .4* scale
 
-  def step_from(self):
+  def try_step(self):
     """Try stepping to a new configuration, but don't do it yet. Used in Markov chain implementation"""
     step_axis = self.rng.integers(0, self.coord_n)
-    step_len = self.rng.uniform(-self.max_step, self.max_step)
-    step_vec = np.zeros_like(self.config)
+    step_len = self.rng.normal(0, self.max_step)
+    step_vec = np.zeros(len(self.current_config()))
     step_vec[step_axis] += step_len
-    return self.config + step_vec
+    return self.current_config() + step_vec
   
   def move_to(self, destination: np.ndarray):
     """Move to a new configuration"""
     self.config = destination
 
   def step(self):
-    dest = self.step_from()
+    dest = self.try_step()
     self.move_to(dest)
 
   def metropolis_step(self, wf: function):
     r = self.current_config()
-    rp = self.step_from()
-    p = (wf(rp)**2)/(wf(r)**2)
-    if p >= 1: self.move_to(rp)
+    rp = self.try_step()
+    if wf(r) == 0.: 
+      p = 10
+    else: 
+      p = (wf(rp)/wf(r))**2
+    if p >= 1.: 
+      self.move_to(rp)
     else:
-      if self.rng.random() < p: self.move_to(rp)
+      if self.rng.random() < p: 
+        self.move_to(rp)
 
   def current_config(self):
     """Returns a copy of the current configuration"""
@@ -66,16 +71,15 @@ def sample_stdev(configs: list[np.ndarray], f: function, avg: float):
   sum_dev = 0.
   for c in configs:
     sum_dev += (f(c) - avg)**2
-  return sum_dev/len(configs)
+  return np.sqrt(sum_dev/(len(configs)-1))
 
 def gauss_wf(r: np.ndarray):
   r0 = np.array([0,0,0])
   dist = np.linalg.norm(r - r0)
-  return np.exp(-1000000*dist**2)
+  return np.exp(-100*dist**2)
 
 if __name__=="__main__":
-  wa = ConfigWalker()
-  wa.config = np.array([0.01,0.01,0.01])
-  for i in range(0,10000):
+  wa = ConfigWalker(1,1)
+  for i in range(0,50):
     print(wa.current_config())
     wa.metropolis_step(gauss_wf)
