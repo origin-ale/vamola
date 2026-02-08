@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 
-def get_args():
+def vmc_args():
   walker_parser = ArgumentParser()
 
   walker_parser.add_argument('-a', '--alpha', action='store', type=float, default=0.8,
@@ -17,3 +17,10 @@ def get_args():
                             help="Convergence threshold for standard deviation of energy")
   
   return walker_parser.parse_args()
+
+def test_args():
+  test_parser = ArgumentParser()
+
+  test_parser.add_argument('-s', '--systems', action='store', type=str, default="ho hy he",
+                           help="Systems to run the testing for. Values:\n- ho: 1D harmonic oscillator\n- hy: hydrogen atom\n-he: helium atom")
+  return test_parser.parse_args()

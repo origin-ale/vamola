@@ -27,8 +27,10 @@ def vmc_sample(alpha, psi_alpha, particles, dims, walker_step, walker_n, steps, 
     
   return samples
   
-def vmc_energy(alpha: float, e_l_alpha: np.ndarray, samples: list):
+def vmc_energy(alpha: float, e_l_alpha: np.ndarray, samples: list, st:float):
   e_l = partial(e_l_alpha, alpha=alpha)
+  elapsed_time = time.perf_counter() - st
+  print(f"{elapsed_time:.1f} s: calculating energy and stdev from {len(samples)} samples...")
   energy = cw.sample_avg(samples, e_l)
   le_stdev = cw.sample_stdev(samples, e_l, energy)
   return energy, le_stdev
@@ -60,7 +62,7 @@ def variational_mc(particles: int,
     d/d(alpha) [ln psi_alpha], used in varying alpha\\
     Calculated analytically.
   """
-  cl_args = parser.get_args()
+  cl_args = parser.vmc_args()
   start_alpha = cl_args.alpha
   walker_n = cl_args.walkers
   steps = cl_args.steps
@@ -83,18 +85,14 @@ def variational_mc(particles: int,
     samples = vmc_sample(alpha, psi_alpha, particles, dims, walker_step, walker_n, steps, thermal, print_interval, st)
 
     energy_last = energy
+    energy, le_stdev = vmc_energy(alpha, e_l_alpha, samples, st)
     elapsed_time = time.perf_counter() - st
-    print(f"{elapsed_time:.1f} s: calculating energy and stdev from {len(samples)} samples...")
-    energy, le_stdev = vmc_energy(alpha, e_l_alpha, samples)
-    elapsed_time = time.perf_counter() - st
-    print(f"{elapsed_time:.1f} s: calculated energy = {energy} with stdev = {le_stdev}")
+    print(f"{elapsed_time:.1f} s: calculated energy = {energy} with stdev = {le_stdev}. Now updating alpha...")
     energy_diff = abs(energy_last-energy)
 
-    elapsed_time = time.perf_counter() - st
-    print(f"{elapsed_time:.1f} s: updating alpha...")
     alpha = update_alpha(alpha, energy, logder, e_l_alpha, samples)
     elapsed_time = time.perf_counter() - st
-    print(f"{elapsed_time:.1f} s: alpha = {alpha}")
+    print(f"{elapsed_time:.1f} s: set alpha = {alpha}")
 
     j+=1
 

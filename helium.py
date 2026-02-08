@@ -11,12 +11,13 @@ def e_l_alpha(R:np.ndarray, alpha: float):
   rv1  = r1/r1_norm
   rv2 = r2/r2_norm
   r12_norm = np.linalg.vector_norm(r12)
+  if r12_norm == 0: return 0
 
   x = 1 + alpha * r12_norm
 
   o0 = -4
   o1 = 1/r12_norm
-  o2 = np.dot(rv1 - rv2,r1-r2) * 1/(r12_norm * x**2)
+  o2 = np.dot(rv1 - rv2,r1-r2) /(r12_norm * x**2)
   o3 = - 1/(r12_norm * x**3)
   o4 = - 1/(4 * x**4)
 

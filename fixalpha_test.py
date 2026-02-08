@@ -2,19 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
+import parser
 import vmc
 
 import harmonic_oscillator as ho
 import hydrogen as hy
 import helium as he
-
-def wf_energy(alpha, psi_alpha, e_l_alpha):
-  x = np.linspace(0, 5, 1000)
-
-  wf_weights = psi_alpha(x, alpha) ** 2
-  e_l_x = e_l_alpha(x, alpha)
-  energy = np.average(e_l_x, weights= wf_weights)
-  return energy
 
 def test_vmc(particles: int, 
             dims: int, 
@@ -43,48 +36,70 @@ def test_vmc(particles: int,
   """
   print("Running VMC energy test for " + syst_name + "...")
   energies = []
+  st = time.perf_counter()
   for a in alphas:
-    st = time.perf_counter()
     samples = vmc.vmc_sample(a, 
                             psi_alpha, 
                             particles, 
                             dims,
                             walker_step,
-                            10, 
-                            100000, 
-                            400,
-                            1, 
+                            400, 
+                            30000, 
+                            4000,
+                            5, 
                             st)
-    r1_samples = [np.linalg.norm(s[0:2]) for s in samples]
-    sample_hist = plt.hist(r1_samples, bins = 1000)
-    plt.show()
-    energy, le_stdev = vmc.vmc_energy(a, e_l_alpha, samples)
+    energy, le_stdev = vmc.vmc_energy(a, e_l_alpha, samples, st)
     energies.append(energy)
-    print(f"alpha = {a}\tE = {energy}\tvar={le_stdev}")
+    elapsed_time = time.perf_counter() - st
+    print(f"{elapsed_time:.1f} s: calculated alpha = {a}\tE = {energy}\tvar={le_stdev}")
   return energies
 
 if __name__ == "__main__":
-  # ho_step = .33
-  # alphas_ho = [0.4, 0.45, 0.5, 0.55, 0.6]
-  # energies_ho = test_vmc(1,1,ho_step, ho.psi_alpha, ho.e_l_alpha, alphas_ho, "harmonic oscillator")
+  cli_args = parser.test_args()
+  systs = cli_args.systems.lower().split()
+  syst_n = 0
 
-  # hy_step = 1.5
-  # alphas_hy = [0.8, 0.9, 1, 1.1, 1.2]
-  # energies_hy = test_vmc(1,3,hy_step,hy.psi_alpha, hy.e_l_alpha, alphas_hy, "hydrogen atom")
+  if "ho" in systs:
+    ho_step = .33
+    alphas_ho = [0.4, 0.45, 0.5, 0.55, 0.6]
+    energies_ho = test_vmc(1,1,ho_step, ho.psi_alpha, ho.e_l_alpha, alphas_ho, "harmonic oscillator")
+    syst_n += 1
 
-  he_step = 2
-  alphas_he = [0.05, 0.075, 0.1, 0.125, 0.15, 0.175, 0.2, 0.225, 0.25]
-  energies_he = test_vmc(2,3,he_step,he.psi_alpha, he.e_l_alpha, alphas_he, "helium atom")
+  if "hy" in systs:
+    hy_step = 1.5
+    alphas_hy = [0.8, 0.9, 1, 1.1, 1.2]
+    energies_hy = test_vmc(1,3,hy_step,hy.psi_alpha, hy.e_l_alpha, alphas_hy, "hydrogen atom")
+    syst_n += 1
 
-  fig, axs = plt.subplots(1,3, figsize = [19.2, 3.6])
+  if "he" in systs:
+    he_step = 2
+    alphas_he = [0.05, 0.075, 0.1, 0.125, 0.15, 0.175, 0.2, 0.225]
+    energies_he = test_vmc(2,3,he_step,he.psi_alpha, he.e_l_alpha, alphas_he, "helium atom")
+    syst_n += 1
 
-  # axs[0].plot(alphas_ho, energies_ho)
-  # f = lambda x: 0.5*x + 1/(8*x)
-  # energies_expected=[f(a) for a in alphas_ho]
-  # axs[0].plot(alphas_ho, energies_expected)
 
-  # axs[1].plot(alphas_hy, energies_hy)
+  if syst_n > 1: fig, axs = plt.subplots(1,syst_n, figsize = [6.4*syst_n, 3.6])
 
-  axs[2].plot(alphas_he, energies_he)
+  if syst_n == 1 :
+    fig,ax = plt.subplots(1,1, figsize = [6.4, 3.6])
+    axs = [ax,]
+
+  if "ho" in systs:
+    axs[syst_n-3].plot(alphas_ho, energies_ho, label = "VMC, harm. osc.")
+    exp_ho = [0.51241, 0.502764, 0.5, 0.502326, 0.50841]
+    axs[syst_n-3].plot(alphas_ho, exp_ho, label = "expected, harm. osc.")
+    axs[syst_n-3].legend()
+
+  if "hy" in systs: 
+    axs[syst_n - 2].plot(alphas_hy, energies_hy, label = "VMC, H")
+    exp_hy = [-0.47962, -0.49491, -0.5, -0.49512, -0.48013]
+    axs[syst_n - 2].plot(alphas_hy, exp_hy, label = "expected, H")
+    axs[syst_n - 2].legend()
+
+  if "he" in systs: 
+    axs[syst_n - 1].plot(alphas_he, energies_he, label = "VMC, He")
+    exp_he = [-2.87134, -2.87534, -2.87703, -2.87804, -2.87783, -2.87813, -2.87674, -2.87461]
+    axs[syst_n - 1].plot(alphas_he, exp_he, label = "expected, He")
+    axs[syst_n-1].legend()
   
   plt.show()

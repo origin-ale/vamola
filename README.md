@@ -6,7 +6,11 @@ Based on Thijssen §12.2, this project uses Variational Monte Carlo methods to f
 - the hydrogen atom
 - the helium atom
 
-Warning: sampling procedure is broken, fixes underway
+
+> [!CAUTION]
+> Harmonic oscillator and hydrogen agree with Thijssen; helium is being tested.\\
+> Minimum finder might not work perfectly; seems fine with oscillator and hydrogen, less so with helium.\\
+> In short: helium, my beloathed.
 
 ## References
 - J. M. Thijssen (2007). *Computational physics*, 2nd ed. Cambridge University Press.
