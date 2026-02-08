@@ -1,6 +1,7 @@
 import numpy as np
 
 import vmc
+import output_utils as ou
 
 def e_l_alpha(R:np.ndarray, alpha: float):
   r1 = R[0:3]
@@ -44,4 +45,12 @@ def logder(R:np.ndarray, alpha:float):
 
 if __name__=="__main__":
   walker_step = .4
-  vmc.variational_mc(2, 3, walker_step, psi_alpha, e_l_alpha, logder, "helium atom")
+  alphas, energies, stdevs = vmc.variational_mc(2, 
+                                                3, 
+                                                walker_step, 
+                                                psi_alpha, 
+                                                e_l_alpha, 
+                                                logder, 
+                                                "helium atom")
+  iterations = [i+1 for i in range(0, len(alphas))]
+  ou.lists_to_file(ou.conv_name("he"), iterations, alphas, energies, stdevs, headers=["iteration", "alpha", "energy", "stdev"])

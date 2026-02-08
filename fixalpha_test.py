@@ -4,6 +4,7 @@ import time
 
 import parser
 import vmc
+import output_utils as ou
 
 import harmonic_oscillator as ho
 import hydrogen as hy
@@ -31,11 +32,12 @@ def test_vmc(particles: int,
   e_l_alpha: function(R, alpha)
     The local energy of the system. Implements the hamiltonian and depends on the variational WF.\\
     Calculated analytically.
-  alphas: list[float]
+  alphas: list of float
     The values of the variational parameter to calculate the energy for.
   """
   print("Running VMC energy test for " + syst_name + "...")
   energies = []
+  stdevs = []
   st = time.perf_counter()
   for a in alphas:
     samples = vmc.vmc_sample(a, 
@@ -50,9 +52,10 @@ def test_vmc(particles: int,
                             st)
     energy, le_stdev = vmc.vmc_energy(a, e_l_alpha, samples, st)
     energies.append(energy)
+    stdevs.append(le_stdev)
     elapsed_time = time.perf_counter() - st
     print(f"{elapsed_time:.1f} s: calculated alpha = {a}\tE = {energy}\tvar={le_stdev}")
-  return energies
+  return energies,stdevs
 
 if __name__ == "__main__":
   cli_args = parser.test_args()
@@ -62,19 +65,22 @@ if __name__ == "__main__":
   if "ho" in systs:
     ho_step = .33
     alphas_ho = [0.4, 0.45, 0.5, 0.55, 0.6]
-    energies_ho = test_vmc(1,1,ho_step, ho.psi_alpha, ho.e_l_alpha, alphas_ho, "harmonic oscillator")
+    energies_ho, stdevs_ho = test_vmc(1,1,ho_step, ho.psi_alpha, ho.e_l_alpha, alphas_ho, "harmonic oscillator")
+    ou.lists_to_file(ou.fa_name("ho"), alphas_ho, energies_ho, stdevs_ho, headers=["alpha", "energy", "stdev"])
     syst_n += 1
 
   if "hy" in systs:
     hy_step = 1.5
     alphas_hy = [0.8, 0.9, 1, 1.1, 1.2]
-    energies_hy = test_vmc(1,3,hy_step,hy.psi_alpha, hy.e_l_alpha, alphas_hy, "hydrogen atom")
+    energies_hy, stdevs_hy = test_vmc(1,3,hy_step,hy.psi_alpha, hy.e_l_alpha, alphas_hy, "hydrogen atom")
+    ou.lists_to_file(ou.fa_name("hy"), alphas_hy, energies_hy, stdevs_hy, headers=["alpha", "energy", "stdev"])
     syst_n += 1
 
   if "he" in systs:
     he_step = 2
     alphas_he = [0.05, 0.075, 0.1, 0.125, 0.15, 0.175, 0.2, 0.225]
-    energies_he = test_vmc(2,3,he_step,he.psi_alpha, he.e_l_alpha, alphas_he, "helium atom")
+    energies_he, stdevs_he = test_vmc(2,3,he_step,he.psi_alpha, he.e_l_alpha, alphas_he, "helium atom")
+    ou.lists_to_file(ou.fa_name("he"), alphas_he, energies_he, stdevs_he, headers=["alpha", "energy", "stdev"])
     syst_n += 1
 
 
@@ -84,22 +90,27 @@ if __name__ == "__main__":
     fig,ax = plt.subplots(1,1, figsize = [6.4, 3.6])
     axs = [ax,]
 
+  current_ax = 0
   if "ho" in systs:
-    axs[syst_n-3].plot(alphas_ho, energies_ho, label = "VMC, harm. osc.")
+    axs[current_ax].plot(alphas_ho, energies_ho, label = "VMC, harm. osc.")
     exp_ho = [0.51241, 0.502764, 0.5, 0.502326, 0.50841]
-    axs[syst_n-3].plot(alphas_ho, exp_ho, label = "expected, harm. osc.")
-    axs[syst_n-3].legend()
+    axs[current_ax].plot(alphas_ho, exp_ho, label = "expected, harm. osc.")
+    axs[current_ax].legend()
+    current_ax+=1
+
 
   if "hy" in systs: 
-    axs[syst_n - 2].plot(alphas_hy, energies_hy, label = "VMC, H")
+    axs[current_ax].plot(alphas_hy, energies_hy, label = "VMC, H")
     exp_hy = [-0.47962, -0.49491, -0.5, -0.49512, -0.48013]
-    axs[syst_n - 2].plot(alphas_hy, exp_hy, label = "expected, H")
-    axs[syst_n - 2].legend()
+    axs[current_ax].plot(alphas_hy, exp_hy, label = "expected, H")
+    axs[current_ax].legend()
+    current_ax+=1
 
   if "he" in systs: 
-    axs[syst_n - 1].plot(alphas_he, energies_he, label = "VMC, He")
+    axs[current_ax].plot(alphas_he, energies_he, label = "VMC, He")
     exp_he = [-2.87134, -2.87534, -2.87703, -2.87804, -2.87783, -2.87813, -2.87674, -2.87461]
-    axs[syst_n - 1].plot(alphas_he, exp_he, label = "expected, He")
-    axs[syst_n-1].legend()
+    axs[current_ax].plot(alphas_he, exp_he, label = "expected, He")
+    axs[current_ax].legend()
+    current_ax+=1
   
   plt.show()

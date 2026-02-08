@@ -5,11 +5,52 @@ from functools import partial
 import config_walk as cw
 import parser
 
-def update_alpha(alpha: float, energy: float, logder:function, e_l_alpha:function, samples: np.ndarray, gamma = 1.):
-  der = 2 * (cw.sample_avg(samples, lambda x: e_l_alpha(x,alpha)*logder(x, alpha)) - energy * cw.sample_avg(samples, lambda x:logder(x, alpha)))
+def update_alpha(alpha: float, 
+                 energy: float, 
+                 logder:function, 
+                 e_l_alpha:function, 
+                 samples: np.ndarray, 
+                 gamma = 1.):
+  """"
+  Use damped steepest descent to calculate a new value of the variational parameter alpha,\\
+  evaluating dE/d(alpha) from VMC samples and local energy (Thijssen eq. 12.13).
+
+  Parameters
+  ---
+  alpha: float
+    The current value of alpha
+  energy: float
+    The current value of the energy
+  logder: function(R, alpha) -> float
+    d/d(alpha) [ln psi_alpha], used in varying alpha.\\
+    Calculated analytically.
+  e_l_alpha: function(R, alpha) -> float
+    The local energy of the system. Implements the hamiltonian and depends on the variational WF.\\
+    Calculated analytically.
+  samples: array of configurations
+    The samples to average over
+  gamma: float
+    The steepest descent parameter
+  
+  Returns
+  ---
+  The new value of alpha
+  """
+  t1  = cw.sample_avg(samples, lambda x: e_l_alpha(x,alpha)*logder(x, alpha))
+  t2 = -energy * cw.sample_avg(samples, lambda x:logder(x, alpha))
+  der = 2 * (t1 + t2)
   return alpha - gamma * der
 
-def vmc_sample(alpha, psi_alpha, particles, dims, walker_step, walker_n, steps, thermal, print_interval, st):
+def vmc_sample(alpha:float,          
+               psi_alpha: function,
+               particles: int,
+               dims: int, 
+               walker_step: float, 
+               walker_n: int, 
+               steps: int, 
+               thermal: int, 
+               print_interval:int,
+               st:float):
   psi = partial(psi_alpha, alpha=alpha)
   walkers = [cw.ConfigWalker(particles,dims,walker_step) for i in range(0,walker_n)]
   samples = []
@@ -45,7 +86,7 @@ def variational_mc(particles: int,
                    syst_name: str = 'unknown system'):
   """
   Run a variational Monte Carlo algorithm.\\
-  All function parameters should be over config space and depend on one parameter alpha.
+  All function-type inputs should be over config space and depend on one parameter alpha.
   
   Parameters
   --
@@ -53,14 +94,23 @@ def variational_mc(particles: int,
     The number of particles in the system
   dims: int
     The number of spatial dimensions
-  psi_alpha: function(R, alpha)
+  psi_alpha: function(R, alpha) -> float
     The variational approximation for the wave function.
-  e_l_alpha: function(R, alpha)
+  e_l_alpha: function(R, alpha) -> float
     The local energy of the system. Implements the hamiltonian and depends on the variational WF.\\
     Calculated analytically.
-  logder: function(R, alpha)
-    d/d(alpha) [ln psi_alpha], used in varying alpha\\
+  logder: function(R, alpha) -> float
+    d/d(alpha) [ln psi_alpha], used in varying alpha.\\
     Calculated analytically.
+
+  Returns
+  ---
+  alphas: list of float
+    The values of alpha considered
+  energies: list of float
+    The energies for each alpha considered until convergence
+  stdevs: list of float
+    The energy stdevs for each alpha
   """
   cl_args = parser.vmc_args()
   start_alpha = cl_args.alpha
@@ -69,6 +119,10 @@ def variational_mc(particles: int,
   thermal = cl_args.thermalization
   print_interval = cl_args.print
   threshold = cl_args.convergence
+
+  alphas = []
+  energies = []
+  stdevs = []
 
   energy = 0.
   le_stdev = np.inf
@@ -87,16 +141,23 @@ def variational_mc(particles: int,
     energy_last = energy
     energy, le_stdev = vmc_energy(alpha, e_l_alpha, samples, st)
     elapsed_time = time.perf_counter() - st
-    print(f"{elapsed_time:.1f} s: calculated energy = {energy} with stdev = {le_stdev}. Now updating alpha...")
     energy_diff = abs(energy_last-energy)
+    
+    alphas.append(alpha)
+    energies.append(energy)
+    stdevs.append(le_stdev)
 
-    alpha = update_alpha(alpha, energy, logder, e_l_alpha, samples)
-    elapsed_time = time.perf_counter() - st
-    print(f"{elapsed_time:.1f} s: set alpha = {alpha}")
+    if energy_diff > threshold:
+      print(f"{elapsed_time:.1f} s: calculated energy = {energy} with stdev = {le_stdev}. Now updating alpha...")
+      alpha = update_alpha(alpha, energy, logder, e_l_alpha, samples)
+      elapsed_time = time.perf_counter() - st
+      print(f"{elapsed_time:.1f} s: set alpha = {alpha}")
 
     j+=1
 
   print(8*'=' + f" Converged with alpha = {alpha} " + 64*'=')
   print(f"Energy = {energy} with stdev = {le_stdev}")
+
+  return alphas, energies, stdevs
 
   
