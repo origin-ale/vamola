@@ -1,1 +1,3 @@
 output/*
+output
+.DS_store
