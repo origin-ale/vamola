@@ -3,8 +3,8 @@ import numpy as np
 import vmc
 
 def e_l_alpha(R:np.ndarray, alpha: float):
-  r1 = R[0:2]
-  r2 = R[3:5]
+  r1 = R[0:3]
+  r2 = R[3:6]
   r12 = r1-r2
   r1_norm = np.linalg.vector_norm(r1)
   r2_norm = np.linalg.vector_norm(r2)
@@ -23,8 +23,8 @@ def e_l_alpha(R:np.ndarray, alpha: float):
   return o0 + o1 + o2 + o3 + o4
 
 def psi_alpha(R:np.ndarray, alpha:float):
-  r1 = R[0:2]
-  r2 = R[3:5]
+  r1 = R[0:3]
+  r2 = R[3:6]
   r12 = r1-r2
   r1_norm = np.linalg.vector_norm(r1)
   r2_norm = np.linalg.vector_norm(r2)
@@ -34,8 +34,8 @@ def psi_alpha(R:np.ndarray, alpha:float):
   
 
 def logder(R:np.ndarray, alpha:float):
-  r1 = R[0:2]
-  r2 = R[3:5]
+  r1 = R[0:3]
+  r2 = R[3:6]
   r12 = r1-r2
   r12_norm = np.linalg.vector_norm(r12)
   return - 0.5 * (r12_norm/(1 + alpha * r12_norm))**2
