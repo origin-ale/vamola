@@ -11,7 +11,7 @@ def vmc_args():
                             help="Total Metropolis steps per walker")
   walker_parser.add_argument('-t', '--thermalization', action='store', type=int, default=4000,
                             help="Metropolis steps to discard for thermalization")
-  walker_parser.add_argument('-p', '--print', action='store', type=float, default=1.,
+  walker_parser.add_argument('-p', '--print', action='store', type=float, default=5.,
                             help="Time interval (s) to print options during Metropolis walks")
   walker_parser.add_argument('-c', '--convergence', action='store', type=float, default=1e-6,
                             help="Convergence threshold for standard deviation of energy")
